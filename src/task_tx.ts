@@ -115,6 +115,34 @@ export async function taskTx() {
     console.log("parallelTxPromiseRejection", res);
   }
 
+  async function rejectBatch() {
+    console.time("batch");
+
+    // note: there is only one connection and request to the server, so the queries will be executed one after the another
+    const res = await db.task(t => {
+      return t.batch([
+        t.any("SELECT pg_sleep(2) as a"),
+        t.any('this will fail'),
+        t.any("SELECT pg_sleep(3) as b")
+      ]);
+    });
+    console.timeLog("batch", res);
+  }
+
+  async function rejectPromiseAll() {
+    console.time("batch");
+
+    // note: there is only one connection and request to the server, so the queries will be executed one after the another
+    const res = await db.task(t => {
+      return Promise.all([
+        t.any("SELECT pg_sleep(2) as a"),
+        t.any('this will fail'),
+        t.any("SELECT pg_sleep(3) as b")
+      ]);
+    });
+    console.timeLog("batch", res);
+  }
+
   async function test() {
     for (let i = 0; i < 5; i++) {
       await parallelTxPromiseRejection().catch(_ => _);
@@ -122,7 +150,10 @@ export async function taskTx() {
     await sleep(10 * 1000);
   }
 
-  test().finally(() => {
+  rejectPromiseAll()
+      .catch(e => console.error('test failed', e))
+      .finally(() => {
     pgp.end();
   });
 }
+

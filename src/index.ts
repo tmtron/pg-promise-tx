@@ -3,5 +3,5 @@ import {blockDbAccess} from "./block-db-access";
 
 // sleepTest(2);
 // idleTxTimeout();
-blockDbAccess();
-// taskTx();
+// blockDbAccess();
+taskTx();
